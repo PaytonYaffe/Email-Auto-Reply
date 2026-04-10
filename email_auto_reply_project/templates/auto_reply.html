@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Reply — Email Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a2e;
+    --ink-soft: #4a4a6a;
+    --ink-faint: #9898b8;
+    --surface: #f7f7fc;
+    --card: #ffffff;
+    --accent: #3d5af1;
+    --accent-light: #eef0fe;
+    --accent-hover: #2a44d4;
+    --border: #e2e2f0;
+    --success: #10b981;
+    --success-bg: #ecfdf5;
+    --shadow-sm: 0 1px 3px rgba(30,30,80,0.07), 0 1px 2px rgba(30,30,80,0.04);
+    --shadow-md: 0 4px 16px rgba(30,30,80,0.10), 0 2px 6px rgba(30,30,80,0.06);
+    --shadow-lg: 0 12px 40px rgba(30,30,80,0.13);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* ── Header bar ── */
+  .topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+  }
+  .topbar-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .topbar-icon svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+  .topbar-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .topbar-sub {
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+    margin-left: 4px;
+    font-weight: 400;
+  }
+
+  /* ── Main layout ── */
+  .page-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 0;
+  }
+
+  .page-header {
+    margin-bottom: 36px;
+  }
+  .page-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .page-header p {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* ── Compose card ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-header-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .card-header-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .card-body { padding: 24px; }
+
+  .field-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+  }
+
+  #message {
+    width: 100%;
+    padding: 13px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--surface);
+    transition: border-color 0.18s, box-shadow 0.18s;
+    outline: none;
+  }
+  #message::placeholder { color: var(--ink-faint); }
+  #message:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(61,90,241,0.12);
+    background: white;
+  }
+
+  .field-hint {
+    font-size: 0.77rem;
+    color: var(--ink-faint);
+    margin-top: 6px;
+  }
+
+  .send-btn {
+    margin-top: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.12s, box-shadow 0.18s;
+    box-shadow: 0 2px 8px rgba(61,90,241,0.28);
+  }
+  .send-btn:hover { background: var(--accent-hover); box-shadow: 0 4px 16px rgba(61,90,241,0.36); transform: translateY(-1px); }
+  .send-btn:active { transform: translateY(0); }
+  .send-btn svg { width: 16px; height: 16px; stroke: white; fill: none; stroke-width: 2.2; stroke-linecap: round; }
+
+  /* ── Reply output ── */
+  .reply-card {
+    margin-top: 24px;
+  }
+  .reply-card .card-header { background: var(--accent-light); }
+  .reply-card .card-header-dot { background: var(--success); }
+
+  #output {
+    padding: 20px 24px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--ink);
+    min-height: 56px;
+    white-space: pre-wrap;
+  }
+  #output:empty::before {
+    content: 'Your generated reply will appear here…';
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  /* ── History section ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 48px 0 28px;
+  }
+  .section-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .section-divider-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .inquiry-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .inquiry-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.18s;
+  }
+  .inquiry-item:hover { box-shadow: var(--shadow-md); }
+
+  .inquiry-item-empty {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--ink-faint);
+    font-size: 0.9rem;
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+
+  .question-text {
+    padding: 14px 20px;
+    font-size: 0.9rem;
+    color: var(--ink);
+    line-height: 1.5;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .question-text strong {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-right: 6px;
+  }
+
+  .answer-text {
+    padding: 14px 20px;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .answer-text strong {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-right: 6px;
+  }
+
+  /* ── Spinner on send ── */
+  .send-btn.loading { opacity: 0.75; pointer-events: none; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .reply-card { animation: fadeIn 0.3s ease both; }
+</style>
+<script>
+  function sendAutoReply() {
+    const paragraph = document.getElementById('message').value;
+    const btn = document.querySelector('.send-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg> Sending…`;
+
+    fetch('/api/auto_reply_email/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paragraph }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      localStorage.setItem('lastReply', data.reply);
+      document.getElementById('output').innerText = data.reply;
+      setTimeout(() => { location.reload(); }, 1500);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      btn.classList.remove('loading');
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Generate Reply`;
+    });
+  }
+
+  window.onload = function() {
+    const lastReply = localStorage.getItem('lastReply');
+    if (lastReply) {
+      document.getElementById('output').innerText = lastReply;
+      localStorage.removeItem('lastReply');
+    }
+  };
+</script>
+</head>
+<body>
+
+<!-- Top navigation bar -->
+<header class="topbar">
+  <div class="topbar-icon">
+    <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+  </div>
+  <span class="topbar-title">AutoReply</span>
+  <span class="topbar-sub">/ Email Assistant</span>
+</header>
+
+<main class="page-wrap">
+
+  <!-- Page heading -->
+  <div class="page-header">
+    <h1>Generate an Auto Reply</h1>
+    <p>Paste your email message below and we'll compose a professional reply for you instantly.</p>
+  </div>
+
+  <!-- Compose card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-dot"></div>
+      <span class="card-header-label">New Message</span>
+    </div>
+    <div class="card-body">
+      <label class="field-label" for="message">Email Message</label>
+      <input type="text" id="message" placeholder="Paste the email content here…" required>
+      <p class="field-hint">Include your name at the very end of the message.</p>
+      <button class="send-btn" onclick="sendAutoReply()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Generate Reply
+      </button>
+    </div>
+  </div>
+
+  <!-- Reply output card -->
+  <div class="card reply-card" style="margin-top:20px;">
+    <div class="card-header">
+      <div class="card-header-dot"></div>
+      <span class="card-header-label">Generated Reply</span>
+    </div>
+    <div id="output"></div>
+  </div>
+
+  <!-- History section -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <span class="section-divider-label">Inquiry History</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <ol class="inquiry-list">
+    {% for inquiry in inquiry_questions %}
+      <li class="inquiry-item">
+        <div class="question-text">
+          <strong>Q{{ forloop.counter }}</strong>{{ inquiry.question }}
+        </div>
+        <div class="answer-text">
+          <strong>Answer</strong>{{ inquiry.answer|default:"[No answer yet]" }}
+        </div>
+      </li>
+    {% empty %}
+      <li class="inquiry-item-empty">No inquiry questions yet. Send your first message above.</li>
+    {% endfor %}
+  </ol>
+
+</main>
+</body>
+</html>
