@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-05ftw8exo0yu0$pb=uo)q4ukd$2=3%qqa4x0zb8*w%ag#9#^+v'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -123,4 +123,10 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-OPENAI_API_KEY = "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"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
